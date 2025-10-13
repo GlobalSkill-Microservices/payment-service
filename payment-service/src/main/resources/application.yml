@@ -1,0 +1,30 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: payment-service
+
+  web:
+    cors:
+      mappings:
+        "/**":
+          allowed-origins: "*"
+          allowed-methods: "*"
+          allowed-headers: "*"
+
+  datasource:
+    url: jdbc:mysql://globalskill-globalskill.e.aivencloud.com:23246/payment-service?ssl-mode=REQUIRED
+    username: avnadmin
+    password: ${AIVEN_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+  main:
+    allow-circular-references: true
