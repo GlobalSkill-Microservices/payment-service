@@ -71,7 +71,7 @@ public class InvoiceCommandService {
             String tmnCode = "F66L391K";
             String secretKey = "LJ3ASJLRI88WWBDBH8CYQBDJTCW1PU0R";
             String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-            String returnUrl = "http://transportkoifish.online/success?orderID=" + invoice.getId();
+            String returnUrl = "http://localhost:5173/payment-success?orderID=" + invoice.getId();
             String currCode = "VND";
 
             Map<String, String> vnpParams = new TreeMap<>();
