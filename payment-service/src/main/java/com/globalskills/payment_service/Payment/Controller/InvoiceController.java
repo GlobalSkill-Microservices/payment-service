@@ -41,16 +41,14 @@ public class InvoiceController {
     @PostMapping("/webhook")
     public ResponseEntity<?> update(@RequestBody WebhookRequest request,
                                     @Parameter(hidden = true)
-                                    @RequestHeader(value = "Authorization", required = false) String authHeader,
-                                    @Parameter(hidden = true)
-                                    @RequestHeader(value = "X-User-ID",required = false) Long accountId){
+                                    @RequestHeader(value = "Authorization", required = false) String authHeader){
         if (authHeader == null || !authHeader.startsWith("apikey ") ||
                 !authHeader.substring(7).equals(SEPAY_API_KEY)) {
             BaseResponseAPI<?> errorResponse = new BaseResponseAPI<>(false, "Unauthorized", null, null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
 
-        invoiceCommandService.update(accountId, request);
+        invoiceCommandService.update(request);
         BaseResponseAPI<?> responseAPI = new BaseResponseAPI<>(true,"Invoice payment success",null,null);
         return ResponseEntity.ok(responseAPI);
     }

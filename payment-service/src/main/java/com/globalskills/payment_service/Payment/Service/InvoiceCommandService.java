@@ -92,8 +92,8 @@ public class InvoiceCommandService {
     }
 
 
-    public void update(Long accountId,WebhookRequest request){
-        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(accountId, request.getContent());
+    public void update(WebhookRequest request){
+        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(request.getContent());
         invoice.setInvoiceStatus(InvoiceStatus.PAID);
         invoiceRepo.save(invoice);
     }
