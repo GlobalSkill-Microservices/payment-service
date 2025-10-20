@@ -28,7 +28,7 @@ public class Invoice {
     @JoinColumn(name = "product_id", nullable = false)
     Product product;
 
-    Double amount;
+    Long amount;
 
     String currency;
 
@@ -38,6 +38,8 @@ public class Invoice {
     Date createdAt;
 
     Date updatedAt;
+
+    String transactionNumber;
 
     @OneToMany(mappedBy = "invoice")
     Set<Transaction> transactions = new HashSet<>();

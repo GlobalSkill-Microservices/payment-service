@@ -1,7 +1,6 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Payment.Dto.InvoiceRequest;
-import com.globalskills.payment_service.Payment.Dto.InvoiceResponse;
+import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Product;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
@@ -20,6 +19,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -28,6 +29,10 @@ import java.util.TreeMap;
 
 @Service
 public class InvoiceCommandService {
+
+    private static final String PREFIX = "DH";
+    private static final int RANDOM_SUFFIX_LENGTH = 4;
+    private final SecureRandom random = new SecureRandom();
 
     @Autowired
     ModelMapper modelMapper;
@@ -41,8 +46,19 @@ public class InvoiceCommandService {
     @Autowired
     InvoiceQueryService invoiceQueryService;
 
-    public InvoiceResponse create (HttpServletRequest servletRequest,InvoiceRequest request,Long accountId) throws Exception{
+    @Autowired
+    SePayService sePayService;
+
+    @Autowired
+    TransactionCommandService transactionCommandService;
+
+    public InvoiceResponse create (InvoiceRequest request,Long accountId){
+
         Product product = productQueryService.findProductById(request.getProductId());
+        ProductResponse productResponse = modelMapper.map(product,ProductResponse.class);
+
+        String transactionNumber = generateUniquePaymentCode();
+        //
         Invoice newInvoice = new Invoice();
         newInvoice.setAccountId(accountId);
         newInvoice.setProduct(product);
@@ -50,11 +66,36 @@ public class InvoiceCommandService {
         newInvoice.setCurrency(product.getCurrency());
         newInvoice.setCreatedAt(new Date());
         newInvoice.setInvoiceStatus(InvoiceStatus.PENDING);
+        newInvoice.setTransactionNumber(transactionNumber);
+
         invoiceRepo.save(newInvoice);
+        //
         InvoiceResponse response = modelMapper.map(newInvoice,InvoiceResponse.class);
-        String urlPayment = urlPayment(servletRequest,newInvoice.getId());
-        response.setPaymentUrl(urlPayment);
+        response.setProductResponse(productResponse);
+
+        SePayRequest sePayRequest = new SePayRequest();
+        sePayRequest.setAmount(newInvoice.getAmount());
+        sePayRequest.setDescription(newInvoice.getTransactionNumber());
+
+        TransactionRequest transactionRequest = new TransactionRequest();
+        transactionRequest.setFromUser(accountId);
+        transactionRequest.setToUser(null);
+        transactionRequest.setInvoiceId(newInvoice.getId());
+        transactionRequest.setAmount(newInvoice.getAmount());
+        transactionRequest.setGatewayTransactionId(transactionNumber);
+        transactionCommandService.create(transactionRequest);
+
+        SePayResponse sePayResponse = sePayService.createQrCode(sePayRequest);
+        response.setSePayResponse(sePayResponse);
+
         return response;
+    }
+
+
+    public void update(Long accountId,WebhookRequest request){
+        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(accountId, request.getContent());
+        invoice.setInvoiceStatus(InvoiceStatus.PAID);
+        invoiceRepo.save(invoice);
     }
 
     private String urlPayment(HttpServletRequest request,Long id) throws Exception{
@@ -142,4 +183,10 @@ public class InvoiceCommandService {
         return ipAddress;
     }
 
+    private String generateUniquePaymentCode() {
+        String timestampPart = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String randomPart = String.format("%0" + RANDOM_SUFFIX_LENGTH + "d",
+                random.nextInt((int) Math.pow(10, RANDOM_SUFFIX_LENGTH)));
+        return PREFIX + timestampPart + randomPart;
+    }
 }

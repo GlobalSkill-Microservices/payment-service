@@ -5,13 +5,6 @@ spring:
   application:
     name: payment-service
 
-  web:
-    cors:
-      mappings:
-        "/**":
-          allowed-origins: "*"
-          allowed-methods: "*"
-          allowed-headers: "*"
 
   datasource:
     url: jdbc:mysql://globalskill-globalskill.e.aivencloud.com:23246/payment-service?ssl-mode=REQUIRED
@@ -28,3 +21,6 @@ spring:
 
   main:
     allow-circular-references: true
+
+sepay:
+  webhook-secret: ${WEBHOOK_TOKEN}
