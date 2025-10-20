@@ -6,16 +6,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    Long id;
+public class SePayResponse {
 
-    String name;
+    LocalTime createAt;
 
-    Long price;
+    LocalTime timeLimit;
 
-    String currency;
+    String qrUrl;
+
+
 }

@@ -14,16 +14,14 @@ import java.util.Date;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvoiceResponse {
-
     Long id;
     Long accountId;
-    Double amount;
+    Long amount;
     String currency;
     InvoiceStatus invoiceStatus;
     Date createdAt;
     Date updatedAt;
-
-    String paymentUrl;
-
+    String transactionNumber;
+    SePayResponse sePayResponse;
     ProductResponse productResponse;
 }

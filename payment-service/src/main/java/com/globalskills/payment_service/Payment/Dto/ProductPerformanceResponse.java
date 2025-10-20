@@ -1,5 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class WalletRequest {
-    Double balance;
+public class ProductPerformanceResponse {
+    Long productId;
+    String productName;
+    Long totalRevenue;
 }

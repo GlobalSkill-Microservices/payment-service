@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/product")
-@CrossOrigin("*")
 @SecurityRequirement(name = "api")
 public class ProductController {
 

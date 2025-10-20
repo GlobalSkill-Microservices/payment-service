@@ -1,5 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
+import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,12 +11,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    Long id;
-
-    String name;
-
-    Long price;
-
-    String currency;
+public class TransactionStatusResponse {
+    TransactionStatus transactionStatus;
+    Long count;
 }

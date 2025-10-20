@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 public class ProductRequest {
     String name;
 
-    Double price;
+    Long price;
 
     String currency;
 }

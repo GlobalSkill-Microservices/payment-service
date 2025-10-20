@@ -10,12 +10,15 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    Long id;
+public class TransactionRequest {
 
-    String name;
+    Long fromUser;
 
-    Long price;
+    Long toUser;
 
-    String currency;
+    Long invoiceId;
+
+    Long amount;
+
+    String gatewayTransactionId;
 }

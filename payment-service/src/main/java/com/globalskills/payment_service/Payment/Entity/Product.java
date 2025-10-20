@@ -22,7 +22,7 @@ public class Product {
 
     String name;
 
-    Double price;
+    Long price;
 
     String currency;
 }

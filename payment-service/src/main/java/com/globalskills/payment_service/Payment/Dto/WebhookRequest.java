@@ -10,14 +10,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class WalletResponse {
+public class WebhookRequest {
 
-    Long id;
-
-    Long accountId;
-
-    Double balance;
-
-    String currency;
+    String content;
 
 }

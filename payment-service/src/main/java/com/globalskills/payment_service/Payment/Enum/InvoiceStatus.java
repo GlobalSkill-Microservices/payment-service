@@ -4,5 +4,5 @@ public enum InvoiceStatus {
     PENDING,
     PAID,
     FAILED,
-    VOID
+    CANCELLED
 }
