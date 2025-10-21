@@ -30,7 +30,7 @@ import java.util.TreeMap;
 @Service
 public class InvoiceCommandService {
 
-    private static final String PREFIX = "SEVQRDH";
+    private static final String PREFIX = "DH";
     private static final int RANDOM_SUFFIX_LENGTH = 4;
     private final SecureRandom random = new SecureRandom();
 
@@ -58,6 +58,8 @@ public class InvoiceCommandService {
         ProductResponse productResponse = modelMapper.map(product,ProductResponse.class);
 
         String transactionNumber = generateUniquePaymentCode();
+
+        String qrContent = "SEVQR" + transactionNumber;
         //
         Invoice newInvoice = new Invoice();
         newInvoice.setAccountId(accountId);
@@ -75,7 +77,7 @@ public class InvoiceCommandService {
 
         SePayRequest sePayRequest = new SePayRequest();
         sePayRequest.setAmount(newInvoice.getAmount());
-        sePayRequest.setDescription(newInvoice.getTransactionNumber());
+        sePayRequest.setDescription(qrContent);
 
         TransactionRequest transactionRequest = new TransactionRequest();
         transactionRequest.setFromUser(accountId);
