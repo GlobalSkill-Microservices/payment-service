@@ -30,7 +30,7 @@ import java.util.TreeMap;
 @Service
 public class InvoiceCommandService {
 
-    private static final String PREFIX = "DH";
+    private static final String PREFIX = "SEVQRDH";
     private static final int RANDOM_SUFFIX_LENGTH = 4;
     private final SecureRandom random = new SecureRandom();
 
@@ -75,8 +75,7 @@ public class InvoiceCommandService {
 
         SePayRequest sePayRequest = new SePayRequest();
         sePayRequest.setAmount(newInvoice.getAmount());
-        sePayRequest.setOrder_code(newInvoice.getTransactionNumber());
-        sePayRequest.setWith_qrcode(true);
+        sePayRequest.setDescription(newInvoice.getTransactionNumber());
 
         TransactionRequest transactionRequest = new TransactionRequest();
         transactionRequest.setFromUser(accountId);
