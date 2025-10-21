@@ -14,5 +14,7 @@ public class SePayRequest {
 
     Long amount;
 
-    String description;
+    String order_code;
+
+    boolean with_qrcode;
 }

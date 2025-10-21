@@ -75,7 +75,8 @@ public class InvoiceCommandService {
 
         SePayRequest sePayRequest = new SePayRequest();
         sePayRequest.setAmount(newInvoice.getAmount());
-        sePayRequest.setDescription(newInvoice.getTransactionNumber());
+        sePayRequest.setOrder_code(newInvoice.getTransactionNumber());
+        sePayRequest.setWith_qrcode(true);
 
         TransactionRequest transactionRequest = new TransactionRequest();
         transactionRequest.setFromUser(accountId);
@@ -93,7 +94,7 @@ public class InvoiceCommandService {
 
 
     public void update(WebhookRequest request){
-        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(request.getContent());
+        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(request.getCode());
         invoice.setInvoiceStatus(InvoiceStatus.PAID);
         invoiceRepo.save(invoice);
     }
