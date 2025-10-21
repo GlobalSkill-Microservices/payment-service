@@ -13,12 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SePayResponse {
-
     LocalTime createAt;
-
     LocalTime timeLimit;
-
     String qrUrl;
-
-
 }

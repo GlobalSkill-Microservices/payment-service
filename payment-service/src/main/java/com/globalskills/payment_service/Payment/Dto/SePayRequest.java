@@ -11,10 +11,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SePayRequest {
-
     Long amount;
-
-    String order_code;
-
-    boolean with_qrcode;
+    String description;
 }
