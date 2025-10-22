@@ -23,4 +23,5 @@ public interface InvoiceRepo extends JpaRepository<Invoice,Long> {
             countQuery = "SELECT COUNT(i) FROM Invoice i")
     Page<Invoice> findAllWithTransactions(Pageable pageable);
 
+
 }
