@@ -1,6 +1,7 @@
 package com.globalskills.payment_service.Common.Feign;
 
 import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.FeignClientInterceptor;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Set;
 
-@FeignClient(name="user-service", url = "https://gateway-service-w2gi.onrender.com/api/user")
+@FeignClient(name="user-service", url = "https://gateway-service-w2gi.onrender.com/api/user",configuration = FeignClientInterceptor.class)
 public interface AccountClient {
 
     @GetMapping("/{id}")

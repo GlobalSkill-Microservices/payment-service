@@ -21,7 +21,7 @@ public class TotalInvoiceResponse {
 
     AccountDto accountDto;
 
-    Long totalAmount;
+    Long amount;
 
     String currency;
 
