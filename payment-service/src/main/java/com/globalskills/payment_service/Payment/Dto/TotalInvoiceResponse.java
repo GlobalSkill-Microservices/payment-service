@@ -32,7 +32,4 @@ public class TotalInvoiceResponse {
     String updatedAt;
 
     String transactionNumber;
-
-    Set<TotalTransactionResponse> transactionResponses = new HashSet<>();
-
 }
