@@ -11,7 +11,6 @@ import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Repository.TransactionRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -164,28 +164,37 @@ public class DashboardService {
     ) {
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<Invoice> invoicePage = invoiceRepo.findAllWithTransactions(pageRequest);
+        Page<Invoice> invoicePage = invoiceRepo.findAll(pageRequest);
 
         if (invoicePage.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0, true);
         }
 
-        Set<Long> userIds = invoicePage.getContent().stream()
-                .flatMap(invoice -> {
-                    Set<Long> ids = new HashSet<>();
-                    ids.add(invoice.getAccountId());
+        List<Long> invoiceIds = invoicePage.getContent().stream()
+                .map(Invoice::getId)
+                .collect(Collectors.toList());
 
-                    invoice.getTransactions().forEach(tx -> {
-                        ids.add(tx.getFromUser());
-                        ids.add(tx.getToUser());
-                    });
-                    return ids.stream();
-                })
+        // Fetch transactions separately
+        List<Transaction> transactions = transactionRepo.findByInvoiceIds(invoiceIds);
+        Map<Long, Set<Transaction>> transactionMap = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        tx -> tx.getInvoice().getId(),
+                        Collectors.toCollection(HashSet::new)
+                ));
+
+        // Attach transactions to invoices
+        invoicePage.getContent().forEach(invoice ->
+                invoice.setTransactions(transactionMap.getOrDefault(invoice.getId(), Set.of()))
+        );
+
+        // Collect user IDs
+        Set<Long> userIds = transactions.stream()
+                .flatMap(tx -> Stream.of(tx.getFromUser(), tx.getToUser()))
                 .collect(Collectors.toSet());
+        invoicePage.getContent().forEach(i -> userIds.add(i.getAccountId()));
 
         Map<Long, AccountDto> userMap = fetchUserMap(userIds);
 
-        // 3. Cải tiến: Extract method để code cleaner
         List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
                 .map(invoice -> mapToInvoiceResponse(invoice, userMap))
                 .collect(Collectors.toList());
