@@ -17,7 +17,8 @@ public interface InvoiceRepo extends JpaRepository<Invoice,Long> {
 
     Page<Invoice> findAllByInvoiceStatusOrderByCreatedAtDesc(InvoiceStatus status, Pageable pageable);
 
-    @Query("SELECT DISTINCT i FROM Invoice i LEFT JOIN FETCH i.transactions")
+    @Query(value = "SELECT DISTINCT i FROM Invoice i LEFT JOIN FETCH i.transactions",
+            countQuery = "SELECT COUNT(i) FROM Invoice i")
     Page<Invoice> findAllWithTransactions(Pageable pageable);
 
 
