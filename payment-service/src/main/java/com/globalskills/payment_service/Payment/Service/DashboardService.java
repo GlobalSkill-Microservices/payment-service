@@ -163,14 +163,19 @@ public class DashboardService {
         if (invoicePage.isEmpty()) {
             return null;
         }
+
         Set<Long> userIds = new HashSet<>();
         for (Invoice invoice : invoicePage.getContent()) {
             userIds.add(invoice.getAccountId());
-            for (Transaction transaction : invoice.getTransactions()) {
+
+            Set<Transaction> safeTransactions = new HashSet<>(invoice.getTransactions());
+
+            for (Transaction transaction : safeTransactions) {
                 userIds.add(transaction.getFromUser());
                 userIds.add(transaction.getToUser());
             }
         }
+
         Map<Long, AccountDto> userMap = Map.of();
         if (!userIds.isEmpty()) {
             userMap = accountClient.getAccountByIds(userIds)
@@ -187,13 +192,11 @@ public class DashboardService {
                     response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
                     response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
 
-                    // 3. Gộp logic map Transaction vào đây
-                    Set<TotalTransactionResponse> transactionResponses = invoice.getTransactions().stream()
-                            .map(transaction -> {
-                                // 3a. Dùng ModelMapper map các trường cơ bản của transaction
-                                TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
+                    Set<Transaction> safeTransactionsForStream = new HashSet<>(invoice.getTransactions());
 
-                                // 3b. Set các trường phức tạp và format date
+                    Set<TotalTransactionResponse> transactionResponses = safeTransactionsForStream.stream()
+                            .map(transaction -> {
+                                TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
                                 txResponse.setFromUser(finalUserMap.get(transaction.getFromUser()));
                                 txResponse.setToUser(finalUserMap.get(transaction.getToUser()));
                                 txResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
@@ -207,6 +210,7 @@ public class DashboardService {
                     return response;
                 })
                 .collect(Collectors.toList());
+
         return new PageResponse<>(
                 invoiceResponses,
                 page,
