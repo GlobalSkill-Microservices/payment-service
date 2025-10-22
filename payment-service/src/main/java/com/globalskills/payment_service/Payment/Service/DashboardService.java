@@ -182,11 +182,6 @@ public class DashboardService {
                         Collectors.toCollection(HashSet::new)
                 ));
 
-        // Attach transactions to invoices
-        invoicePage.getContent().forEach(invoice ->
-                invoice.setTransactions(transactionMap.getOrDefault(invoice.getId(), Set.of()))
-        );
-
         // Collect user IDs
         Set<Long> userIds = transactions.stream()
                 .flatMap(tx -> Stream.of(tx.getFromUser(), tx.getToUser()))
@@ -196,7 +191,10 @@ public class DashboardService {
         Map<Long, AccountDto> userMap = fetchUserMap(userIds);
 
         List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
-                .map(invoice -> mapToInvoiceResponse(invoice, userMap))
+                .map(invoice -> {
+                    Set<Transaction> txs = transactionMap.getOrDefault(invoice.getId(), Set.of());
+                    return mapToInvoiceResponse(invoice, userMap, txs);
+                })
                 .collect(Collectors.toList());
 
         return new PageResponse<>(
@@ -230,17 +228,12 @@ public class DashboardService {
         }
     }
 
-    // Helper method: Map invoice to response
-    private TotalInvoiceResponse mapToInvoiceResponse(Invoice invoice, Map<Long, AccountDto> userMap) {
+    private TotalInvoiceResponse mapToInvoiceResponse(Invoice invoice, Map<Long, AccountDto> userMap, Set<Transaction> transactions) {
         TotalInvoiceResponse response = modelMapper.map(invoice, TotalInvoiceResponse.class);
         response.setAccountDto(userMap.get(invoice.getAccountId()));
         response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
         response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
-
-        Set<TotalTransactionResponse> transactionResponses =
-                mapTransactions(invoice.getTransactions(), userMap);
-
-        response.setTransactionResponses(transactionResponses);
+        response.setTransactionResponses(mapTransactions(transactions, userMap));
         return response;
     }
 
