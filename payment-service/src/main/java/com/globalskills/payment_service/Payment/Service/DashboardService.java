@@ -1,18 +1,20 @@
 package com.globalskills.payment_service.Payment.Service;
 
+import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Feign.AccountClient;
 import com.globalskills.payment_service.Common.PageResponse;
-import com.globalskills.payment_service.Payment.Dto.DailyRevenueResponse;
-import com.globalskills.payment_service.Payment.Dto.ProductPerformanceResponse;
-import com.globalskills.payment_service.Payment.Dto.TransactionStatusResponse;
+import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Transaction;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Repository.TransactionRepo;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -28,6 +30,12 @@ public class DashboardService {
 
     @Autowired
     TransactionRepo transactionRepo;
+
+    @Autowired
+    AccountClient accountClient;
+
+    @Autowired
+    ModelMapper modelMapper;
 
 
     public PageResponse<DailyRevenueResponse> getDailyRevenue(int page, int size){
@@ -142,10 +150,72 @@ public class DashboardService {
         return response;
     }
 
+    public PageResponse<TotalInvoiceResponse> getTotalInvoice(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Page<Invoice> invoicePage = invoiceRepo.findAll(pageRequest);
 
+        if (invoicePage.isEmpty()) {
+            return null;
+        }
+        Set<Long> userIds = new HashSet<>();
+        for (Invoice invoice : invoicePage.getContent()) {
+            userIds.add(invoice.getAccountId());
+            for (Transaction transaction : invoice.getTransactions()) {
+                userIds.add(transaction.getFromUser());
+                userIds.add(transaction.getToUser());
+            }
+        }
+        Map<Long, AccountDto> userMap = Map.of();
+        if (!userIds.isEmpty()) {
+            userMap = accountClient.getAccountByIds(userIds)
+                    .stream()
+                    .collect(Collectors.toMap(AccountDto::getId, dto -> dto));
+        }
 
+        final Map<Long, AccountDto> finalUserMap = userMap;
+        List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
+                .map(invoice -> {
+                    TotalInvoiceResponse response = modelMapper.map(invoice, TotalInvoiceResponse.class);
 
+                    response.setAccountDto(finalUserMap.get(invoice.getAccountId()));
+                    response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
+                    response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
 
+                    // 3. Gộp logic map Transaction vào đây
+                    Set<TotalTransactionResponse> transactionResponses = invoice.getTransactions().stream()
+                            .map(transaction -> {
+                                // 3a. Dùng ModelMapper map các trường cơ bản của transaction
+                                TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
+
+                                // 3b. Set các trường phức tạp và format date
+                                txResponse.setFromUser(finalUserMap.get(transaction.getFromUser()));
+                                txResponse.setToUser(finalUserMap.get(transaction.getToUser()));
+                                txResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
+
+                                return txResponse;
+                            })
+                            .collect(Collectors.toSet());
+
+                    response.setTransactionResponses(transactionResponses);
+
+                    return response;
+                })
+                .collect(Collectors.toList());
+        return new PageResponse<>(
+                invoiceResponses,
+                page,
+                size,
+                invoicePage.getTotalElements(),
+                invoicePage.getTotalPages(),
+                invoicePage.isLast()
+        );
+    }
 
     private String formatDateToYMD(Date date) {
         if (date == null) return null;
