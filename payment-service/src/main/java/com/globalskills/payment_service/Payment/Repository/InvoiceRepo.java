@@ -4,6 +4,7 @@ import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,9 +18,9 @@ public interface InvoiceRepo extends JpaRepository<Invoice,Long> {
 
     Page<Invoice> findAllByInvoiceStatusOrderByCreatedAtDesc(InvoiceStatus status, Pageable pageable);
 
-    @Query(value = "SELECT DISTINCT i FROM Invoice i LEFT JOIN FETCH i.transactions",
+    @EntityGraph(attributePaths = "transactions")
+    @Query(value = "SELECT i FROM Invoice i",
             countQuery = "SELECT COUNT(i) FROM Invoice i")
     Page<Invoice> findAllWithTransactions(Pageable pageable);
-
 
 }
