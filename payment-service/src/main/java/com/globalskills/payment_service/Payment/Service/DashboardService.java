@@ -10,18 +10,23 @@ import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Repository.TransactionRepo;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class DashboardService {
 
 
@@ -150,6 +155,7 @@ public class DashboardService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<TotalInvoiceResponse> getTotalInvoice(
             int page,
             int size,
@@ -158,57 +164,35 @@ public class DashboardService {
     ) {
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<Invoice> invoicePage = invoiceRepo.findAll(pageRequest);
+        Page<Invoice> invoicePage = invoiceRepo.findAllWithTransactions(pageRequest);
 
         if (invoicePage.isEmpty()) {
-            return null;
+            return new PageResponse<>(List.of(), page, size, 0, 0, true);
         }
 
-        Set<Long> userIds = new HashSet<>();
-        for (Invoice invoice : invoicePage.getContent()) {
-            userIds.add(invoice.getAccountId());
+        // 1. Cải tiến: Sử dụng flatMap thay vì nested loop
+        Set<Long> userIds = invoicePage.getContent().stream()
+                .flatMap(invoice -> {
+                    Set<Long> ids = new HashSet<>();
+                    ids.add(invoice.getAccountId());
 
-            Set<Transaction> safeTransactions = new HashSet<>(invoice.getTransactions());
-
-            for (Transaction transaction : safeTransactions) {
-                userIds.add(transaction.getFromUser());
-                userIds.add(transaction.getToUser());
-            }
-        }
-
-        Map<Long, AccountDto> userMap = Map.of();
-        if (!userIds.isEmpty()) {
-            userMap = accountClient.getAccountByIds(userIds)
-                    .stream()
-                    .collect(Collectors.toMap(AccountDto::getId, dto -> dto));
-        }
-
-        final Map<Long, AccountDto> finalUserMap = userMap;
-        List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
-                .map(invoice -> {
-                    TotalInvoiceResponse response = modelMapper.map(invoice, TotalInvoiceResponse.class);
-
-                    response.setAccountDto(finalUserMap.get(invoice.getAccountId()));
-                    response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
-                    response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
-
-                    Set<Transaction> safeTransactionsForStream = new HashSet<>(invoice.getTransactions());
-
-                    Set<TotalTransactionResponse> transactionResponses = safeTransactionsForStream.stream()
-                            .map(transaction -> {
-                                TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
-                                txResponse.setFromUser(finalUserMap.get(transaction.getFromUser()));
-                                txResponse.setToUser(finalUserMap.get(transaction.getToUser()));
-                                txResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
-
-                                return txResponse;
-                            })
-                            .collect(Collectors.toSet());
-
-                    response.setTransactionResponses(transactionResponses);
-
-                    return response;
+                    // Force initialization và tạo defensive copy an toàn hơn
+                    if (Hibernate.isInitialized(invoice.getTransactions())) {
+                        invoice.getTransactions().forEach(tx -> {
+                            ids.add(tx.getFromUser());
+                            ids.add(tx.getToUser());
+                        });
+                    }
+                    return ids.stream();
                 })
+                .collect(Collectors.toSet());
+
+        // 2. Cải tiến: Xử lý null-safe cho userMap
+        Map<Long, AccountDto> userMap = fetchUserMap(userIds);
+
+        // 3. Cải tiến: Extract method để code cleaner
+        List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
+                .map(invoice -> mapToInvoiceResponse(invoice, userMap))
                 .collect(Collectors.toList());
 
         return new PageResponse<>(
@@ -219,6 +203,61 @@ public class DashboardService {
                 invoicePage.getTotalPages(),
                 invoicePage.isLast()
         );
+    }
+
+    // Helper method: Fetch user map với cache-aware
+    private Map<Long, AccountDto> fetchUserMap(Set<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            return accountClient.getAccountByIds(userIds)
+                    .stream()
+                    .filter(Objects::nonNull) // Filter null accounts
+                    .collect(Collectors.toMap(
+                            AccountDto::getId,
+                            Function.identity(),
+                            (existing, replacement) -> existing // Handle duplicate keys
+                    ));
+        } catch (Exception e) {
+            log.error("Failed to fetch accounts for ids: {}", userIds, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    // Helper method: Map invoice to response
+    private TotalInvoiceResponse mapToInvoiceResponse(Invoice invoice, Map<Long, AccountDto> userMap) {
+        TotalInvoiceResponse response = modelMapper.map(invoice, TotalInvoiceResponse.class);
+        response.setAccountDto(userMap.get(invoice.getAccountId()));
+        response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
+        response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
+
+        // 4. Cải tiến: Kiểm tra initialization trước khi access
+        Set<TotalTransactionResponse> transactionResponses =
+                Hibernate.isInitialized(invoice.getTransactions())
+                        ? mapTransactions(invoice.getTransactions(), userMap)
+                        : Collections.emptySet();
+
+        response.setTransactionResponses(transactionResponses);
+        return response;
+    }
+
+    // Helper method: Map transactions
+    private Set<TotalTransactionResponse> mapTransactions(
+            Set<Transaction> transactions,
+            Map<Long, AccountDto> userMap
+    ) {
+        // Tạo defensive copy ngay từ đầu
+        return new HashSet<>(transactions).stream()
+                .map(transaction -> {
+                    TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
+                    txResponse.setFromUser(userMap.get(transaction.getFromUser()));
+                    txResponse.setToUser(userMap.get(transaction.getToUser()));
+                    txResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
+                    return txResponse;
+                })
+                .collect(Collectors.toSet());
     }
 
     private String formatDateToYMD(Date date) {
