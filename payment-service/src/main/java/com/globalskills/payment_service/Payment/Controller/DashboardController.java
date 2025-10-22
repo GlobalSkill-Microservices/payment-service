@@ -4,6 +4,7 @@ import com.globalskills.payment_service.Common.BaseResponseAPI;
 import com.globalskills.payment_service.Common.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.DailyRevenueResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductPerformanceResponse;
+import com.globalskills.payment_service.Payment.Dto.TotalInvoiceResponse;
 import com.globalskills.payment_service.Payment.Service.DashboardService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,18 @@ public class DashboardController {
     public ResponseEntity<?> getTransactionStatistics(){
         Map<String, Object> response = dashboardService.getTransactionStatistics();
         BaseResponseAPI<Map<String, Object>> responseAPI = new BaseResponseAPI<>(true,"Get transactional statistics successfully",response,null);
+        return ResponseEntity.ok(responseAPI);
+    }
+
+    @GetMapping("/total-invoice")
+    public ResponseEntity<?> getTotalInvoice(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ){
+        PageResponse<TotalInvoiceResponse> response = dashboardService.getTotalInvoice(page, size, sortBy, sortDir);
+        BaseResponseAPI<PageResponse<TotalInvoiceResponse>> responseAPI = new BaseResponseAPI<>(true,"Get total invoice successfully",response,null);
         return ResponseEntity.ok(responseAPI);
     }
 
