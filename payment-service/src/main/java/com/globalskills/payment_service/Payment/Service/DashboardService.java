@@ -170,24 +170,19 @@ public class DashboardService {
             return new PageResponse<>(List.of(), page, size, 0, 0, true);
         }
 
-        // 1. Cải tiến: Sử dụng flatMap thay vì nested loop
         Set<Long> userIds = invoicePage.getContent().stream()
                 .flatMap(invoice -> {
                     Set<Long> ids = new HashSet<>();
                     ids.add(invoice.getAccountId());
 
-                    // Force initialization và tạo defensive copy an toàn hơn
-                    if (Hibernate.isInitialized(invoice.getTransactions())) {
-                        invoice.getTransactions().forEach(tx -> {
-                            ids.add(tx.getFromUser());
-                            ids.add(tx.getToUser());
-                        });
-                    }
+                    invoice.getTransactions().forEach(tx -> {
+                        ids.add(tx.getFromUser());
+                        ids.add(tx.getToUser());
+                    });
                     return ids.stream();
                 })
                 .collect(Collectors.toSet());
 
-        // 2. Cải tiến: Xử lý null-safe cho userMap
         Map<Long, AccountDto> userMap = fetchUserMap(userIds);
 
         // 3. Cải tiến: Extract method để code cleaner
@@ -233,11 +228,8 @@ public class DashboardService {
         response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
         response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
 
-        // 4. Cải tiến: Kiểm tra initialization trước khi access
         Set<TotalTransactionResponse> transactionResponses =
-                Hibernate.isInitialized(invoice.getTransactions())
-                        ? mapTransactions(invoice.getTransactions(), userMap)
-                        : Collections.emptySet();
+                mapTransactions(invoice.getTransactions(), userMap);
 
         response.setTransactionResponses(transactionResponses);
         return response;
