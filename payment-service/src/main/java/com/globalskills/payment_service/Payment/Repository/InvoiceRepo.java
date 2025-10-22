@@ -18,10 +18,6 @@ public interface InvoiceRepo extends JpaRepository<Invoice,Long> {
 
     Page<Invoice> findAllByInvoiceStatusOrderByCreatedAtDesc(InvoiceStatus status, Pageable pageable);
 
-    @EntityGraph(attributePaths = "transactions")
-    @Query(value = "SELECT i FROM Invoice i",
-            countQuery = "SELECT COUNT(i) FROM Invoice i")
-    Page<Invoice> findAllWithTransactions(Pageable pageable);
 
 
 }

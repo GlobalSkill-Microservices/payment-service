@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -156,58 +155,75 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<TotalInvoiceResponse> getTotalInvoice(
+    public PageResponse<TotalTransactionResponse> getTotalTransaction(
             int page,
             int size,
             String sortBy,
             String sortDir
-    ) {
+    ){
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<Invoice> invoicePage = invoiceRepo.findAll(pageRequest);
 
-        if (invoicePage.isEmpty()) {
+        Page<Transaction> transactionPage = transactionRepo.findAll(pageRequest);
+
+        if (transactionPage.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0, true);
         }
 
-        List<Long> invoiceIds = invoicePage.getContent().stream()
-                .map(Invoice::getId)
-                .collect(Collectors.toList());
+        List<Transaction> transactions = transactionPage.getContent();
 
-        // Fetch transactions separately
-        List<Transaction> transactions = transactionRepo.findByInvoiceIds(invoiceIds);
-        Map<Long, Set<Transaction>> transactionMap = transactions.stream()
-                .collect(Collectors.groupingBy(
-                        tx -> tx.getInvoice().getId(),
-                        Collectors.toCollection(HashSet::new)
-                ));
-
-        // Collect user IDs
-        Set<Long> userIds = transactions.stream()
-                .flatMap(tx -> Stream.of(tx.getFromUser(), tx.getToUser()))
+        Set<Long> invoiceIds = transactions
+                .stream()
+                .map(tx-> tx.getInvoice().getId())
                 .collect(Collectors.toSet());
-        invoicePage.getContent().forEach(i -> userIds.add(i.getAccountId()));
+
+        Set<Long> userIds = transactions
+                .stream()
+                .map(tx-> tx.getInvoice().getAccountId())
+                .collect(Collectors.toSet());
+
+        Map<Long,Invoice> invoiceMap = invoiceRepo.findAllById(invoiceIds)
+                .stream()
+                .collect(Collectors.toMap(Invoice::getId, Function.identity()));
 
         Map<Long, AccountDto> userMap = fetchUserMap(userIds);
 
-        List<TotalInvoiceResponse> invoiceResponses = invoicePage.getContent().stream()
-                .map(invoice -> {
-                    Set<Transaction> txs = transactionMap.getOrDefault(invoice.getId(), Set.of());
-                    return mapToInvoiceResponse(invoice, userMap, txs);
-                })
-                .collect(Collectors.toList());
+        List<TotalTransactionResponse> responses = transactions.stream()
+                .map(transaction -> mapToTotalTransactionResponse(transaction, invoiceMap, userMap))
+                .toList();
 
+        // 6. Trả về PageResponse
         return new PageResponse<>(
-                invoiceResponses,
+                responses,
                 page,
                 size,
-                invoicePage.getTotalElements(),
-                invoicePage.getTotalPages(),
-                invoicePage.isLast()
+                transactionPage.getTotalElements(),
+                transactionPage.getTotalPages(),
+                transactionPage.isLast()
         );
     }
+    private TotalTransactionResponse mapToTotalTransactionResponse(
+            Transaction transaction,
+            Map<Long, Invoice> invoiceMap,
+            Map<Long, AccountDto> userMap
+    ){
+        Invoice invoice = invoiceMap.get(transaction.getInvoice().getId());
+        TotalTransactionResponse totalTransactionResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
+        totalTransactionResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
+        if (invoice != null) {
+            TotalInvoiceResponse invoiceResponse = modelMapper.map(invoice, TotalInvoiceResponse.class);
 
-    // Helper method: Fetch user map với cache-aware
+            invoiceResponse.setAccountDto(userMap.get(invoice.getAccountId()));
+
+            invoiceResponse.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
+            invoiceResponse.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
+
+            totalTransactionResponse.setTotalInvoiceResponse(invoiceResponse);
+        }
+
+        return totalTransactionResponse;
+    }
+
     private Map<Long, AccountDto> fetchUserMap(Set<Long> userIds) {
         if (userIds.isEmpty()) {
             return Collections.emptyMap();
@@ -216,11 +232,11 @@ public class DashboardService {
         try {
             return accountClient.getAccountByIds(userIds)
                     .stream()
-                    .filter(Objects::nonNull) // Filter null accounts
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toMap(
                             AccountDto::getId,
                             Function.identity(),
-                            (existing, replacement) -> existing // Handle duplicate keys
+                            (existing, replacement) -> existing
                     ));
         } catch (Exception e) {
             log.error("Failed to fetch accounts for ids: {}", userIds, e);
@@ -228,31 +244,6 @@ public class DashboardService {
         }
     }
 
-    private TotalInvoiceResponse mapToInvoiceResponse(Invoice invoice, Map<Long, AccountDto> userMap, Set<Transaction> transactions) {
-        TotalInvoiceResponse response = modelMapper.map(invoice, TotalInvoiceResponse.class);
-        response.setAccountDto(userMap.get(invoice.getAccountId()));
-        response.setCreatedAt(formatDateToYMD(invoice.getCreatedAt()));
-        response.setUpdatedAt(formatDateToYMD(invoice.getUpdatedAt()));
-        response.setTransactionResponses(mapTransactions(transactions, userMap));
-        return response;
-    }
-
-    // Helper method: Map transactions
-    private Set<TotalTransactionResponse> mapTransactions(
-            Set<Transaction> transactions,
-            Map<Long, AccountDto> userMap
-    ) {
-        // Tạo defensive copy ngay từ đầu
-        return new HashSet<>(transactions).stream()
-                .map(transaction -> {
-                    TotalTransactionResponse txResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
-                    txResponse.setFromUser(userMap.get(transaction.getFromUser()));
-                    txResponse.setToUser(userMap.get(transaction.getToUser()));
-                    txResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
-                    return txResponse;
-                })
-                .collect(Collectors.toSet());
-    }
 
     private String formatDateToYMD(Date date) {
         if (date == null) return null;

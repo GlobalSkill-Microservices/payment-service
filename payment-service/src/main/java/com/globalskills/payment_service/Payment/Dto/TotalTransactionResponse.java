@@ -31,4 +31,6 @@ public class TotalTransactionResponse {
     String gatewayTransactionId;
 
     String createdAt;
+
+    TotalInvoiceResponse totalInvoiceResponse;
 }

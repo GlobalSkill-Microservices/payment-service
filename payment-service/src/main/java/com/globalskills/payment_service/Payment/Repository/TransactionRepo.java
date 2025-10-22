@@ -10,7 +10,4 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepo extends JpaRepository<Transaction,Long> {
-
-    @Query("SELECT t FROM Transaction t WHERE t.invoice.id IN :invoiceIds")
-    List<Transaction> findByInvoiceIds(@Param("invoiceIds") List<Long> invoiceIds);
 }
