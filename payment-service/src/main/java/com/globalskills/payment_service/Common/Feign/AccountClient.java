@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Set;
 
-@FeignClient(name="user-service", url = "https://gateway-service-w2gi.onrender.com/api/user",configuration = FeignClientInterceptor.class)
+@FeignClient(name="user-service", url = "https://gateway-service-w2gi.onrender.com/api/user-client",configuration = FeignClientInterceptor.class)
 public interface AccountClient {
 
     @GetMapping("/{id}")

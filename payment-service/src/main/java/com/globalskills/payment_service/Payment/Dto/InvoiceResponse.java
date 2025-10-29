@@ -1,5 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
+import com.globalskills.payment_service.Common.AccountDto;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -14,14 +15,24 @@ import java.util.Date;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvoiceResponse {
+
     Long id;
-    Long accountId;
+
+    AccountDto accountId;
+
     Long amount;
+
     String currency;
+
     InvoiceStatus invoiceStatus;
+
     Date createdAt;
+
     Date updatedAt;
+
     String transactionNumber;
+
     SePayResponse sePayResponse;
+
     ProductResponse productResponse;
 }

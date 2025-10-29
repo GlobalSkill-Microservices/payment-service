@@ -10,6 +10,7 @@ import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Repository.TransactionRepo;
+import com.globalskills.payment_service.Payment.Service.Client.AccountClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class DashboardService {
     TransactionRepo transactionRepo;
 
     @Autowired
-    AccountClient accountClient;
+    AccountClientService accountClientService;
 
     @Autowired
     ModelMapper modelMapper;
@@ -159,12 +160,13 @@ public class DashboardService {
             int page,
             int size,
             String sortBy,
-            String sortDir
+            String sortDir,
+            TransactionStatus transactionStatus
     ){
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<Transaction> transactionPage = transactionRepo.findAll(pageRequest);
+        Page<Transaction> transactionPage = transactionRepo.findAllByTransactionStatus(pageRequest,transactionStatus);
 
         if (transactionPage.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0, true);
@@ -202,6 +204,7 @@ public class DashboardService {
                 transactionPage.isLast()
         );
     }
+
     private TotalTransactionResponse mapToTotalTransactionResponse(
             Transaction transaction,
             Map<Long, Invoice> invoiceMap,
@@ -230,7 +233,7 @@ public class DashboardService {
         }
 
         try {
-            return accountClient.getAccountByIds(userIds)
+            return accountClientService.fetchListAccount(userIds)
                     .stream()
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(
@@ -243,7 +246,6 @@ public class DashboardService {
             return Collections.emptyMap();
         }
     }
-
 
     private String formatDateToYMD(Date date) {
         if (date == null) return null;
