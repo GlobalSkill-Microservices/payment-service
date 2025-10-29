@@ -6,6 +6,7 @@ import com.globalskills.payment_service.Payment.Dto.DailyRevenueResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductPerformanceResponse;
 import com.globalskills.payment_service.Payment.Dto.TotalInvoiceResponse;
 import com.globalskills.payment_service.Payment.Dto.TotalTransactionResponse;
+import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Service.DashboardService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -59,9 +60,10 @@ public class DashboardController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(defaultValue = "SUCCESS",required = true)TransactionStatus transactionStatus
+            @RequestParam(defaultValue = "SUCCESS",required = true)TransactionStatus transactionStatus,
+            @RequestParam(defaultValue = "PAID",required = true) InvoiceStatus invoiceStatus
             ){
-        PageResponse<TotalTransactionResponse> response = dashboardService.getTotalTransaction(page, size, sortBy, sortDir,transactionStatus);
+        PageResponse<TotalTransactionResponse> response = dashboardService.getTotalTransaction(page, size, sortBy, sortDir,transactionStatus,invoiceStatus);
         BaseResponseAPI<PageResponse<TotalTransactionResponse>> responseAPI = new BaseResponseAPI<>(true,"Get total transaction successfully",response,null);
         return ResponseEntity.ok(responseAPI);
     }
