@@ -1,6 +1,7 @@
 package com.globalskills.payment_service.Payment.Repository;
 
 import com.globalskills.payment_service.Payment.Entity.Transaction;
+import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,5 +14,11 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepo extends JpaRepository<Transaction,Long> {
-    Page<Transaction> findAllByTransactionStatus(PageRequest pageRequest, TransactionStatus transactionStatus);
+
+    @Query("SELECT t FROM Transaction t WHERE t.transactionStatus = :ts AND t.invoice.invoiceStatus = :is")
+    Page<Transaction> findByStatusAndInvoiceStatus(
+            PageRequest pageRequest,
+            @Param("ts") TransactionStatus transactionStatus,
+            @Param("is") InvoiceStatus invoiceStatus
+    );
 }
