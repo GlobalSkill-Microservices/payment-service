@@ -1,5 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
+import com.globalskills.payment_service.Common.AccountDto;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionType;
 import lombok.AccessLevel;
@@ -17,9 +18,9 @@ import java.util.Date;
 public class TransactionResponse {
     Long id;
 
-    Long fromUser;
+    AccountDto fromUser;
 
-    Long toUser;
+    AccountDto toUser;
 
     TransactionType transactionType;
 

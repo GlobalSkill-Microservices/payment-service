@@ -22,6 +22,8 @@ public class Product {
 
     String name;
 
+    String description;
+
     Long price;
 
     String currency;

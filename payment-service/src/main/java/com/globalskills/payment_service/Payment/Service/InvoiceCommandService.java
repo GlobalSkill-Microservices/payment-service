@@ -1,11 +1,13 @@
 package com.globalskills.payment_service.Payment.Service;
 
+import com.globalskills.payment_service.Common.AccountDto;
 import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Product;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Exception.InvoiceException;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
+import com.globalskills.payment_service.Payment.Service.Client.AccountClientService;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
@@ -52,8 +54,11 @@ public class InvoiceCommandService {
     @Autowired
     TransactionCommandService transactionCommandService;
 
-    public InvoiceResponse create (InvoiceRequest request,Long accountId){
+    @Autowired
+    AccountClientService accountClientService;
 
+    public InvoiceResponse create (InvoiceRequest request,Long accountId){
+        AccountDto accountDto = accountClientService.fetchAccount(accountId);
         Product product = productQueryService.findProductById(request.getProductId());
         ProductResponse productResponse = modelMapper.map(product,ProductResponse.class);
 
@@ -69,9 +74,12 @@ public class InvoiceCommandService {
         newInvoice.setTransactionNumber(transactionNumber);
 
         invoiceRepo.save(newInvoice);
+
+
         //
         InvoiceResponse response = modelMapper.map(newInvoice,InvoiceResponse.class);
         response.setProductResponse(productResponse);
+        response.setAccountId(accountDto);
 
         SePayRequest sePayRequest = new SePayRequest();
         sePayRequest.setAmount(newInvoice.getAmount());

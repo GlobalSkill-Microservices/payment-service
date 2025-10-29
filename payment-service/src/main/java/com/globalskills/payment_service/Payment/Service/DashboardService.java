@@ -10,6 +10,7 @@ import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Repository.TransactionRepo;
+import com.globalskills.payment_service.Payment.Service.Client.AccountClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class DashboardService {
     TransactionRepo transactionRepo;
 
     @Autowired
-    AccountClient accountClient;
+    AccountClientService accountClientService;
 
     @Autowired
     ModelMapper modelMapper;
@@ -202,6 +203,7 @@ public class DashboardService {
                 transactionPage.isLast()
         );
     }
+
     private TotalTransactionResponse mapToTotalTransactionResponse(
             Transaction transaction,
             Map<Long, Invoice> invoiceMap,
@@ -230,7 +232,7 @@ public class DashboardService {
         }
 
         try {
-            return accountClient.getAccountByIds(userIds)
+            return accountClientService.fetchListAccount(userIds)
                     .stream()
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(
@@ -243,7 +245,6 @@ public class DashboardService {
             return Collections.emptyMap();
         }
     }
-
 
     private String formatDateToYMD(Date date) {
         if (date == null) return null;
