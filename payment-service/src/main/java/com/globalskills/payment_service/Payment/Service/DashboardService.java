@@ -213,7 +213,9 @@ public class DashboardService {
         Invoice invoice = invoiceMap.get(transaction.getInvoice().getId());
         TotalTransactionResponse totalTransactionResponse = modelMapper.map(transaction, TotalTransactionResponse.class);
         totalTransactionResponse.setCreatedAt(formatDateToYMD(transaction.getCreatedAt()));
+
         if (invoice != null) {
+            totalTransactionResponse.setFromUser(userMap.get((invoice.getAccountId())));
             TotalInvoiceResponse invoiceResponse = modelMapper.map(invoice, TotalInvoiceResponse.class);
 
             invoiceResponse.setAccountDto(userMap.get(invoice.getAccountId()));
