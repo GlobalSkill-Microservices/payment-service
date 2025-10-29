@@ -160,12 +160,13 @@ public class DashboardService {
             int page,
             int size,
             String sortBy,
-            String sortDir
+            String sortDir,
+            TransactionStatus transactionStatus
     ){
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<Transaction> transactionPage = transactionRepo.findAll(pageRequest);
+        Page<Transaction> transactionPage = transactionRepo.findAllByTransactionStatus(pageRequest,transactionStatus);
 
         if (transactionPage.isEmpty()) {
             return new PageResponse<>(List.of(), page, size, 0, 0, true);
