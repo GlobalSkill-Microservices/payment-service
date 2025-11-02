@@ -1,10 +1,9 @@
 package com.globalskills.payment_service.Payment.Controller;
 
-import com.globalskills.payment_service.Common.BaseResponseAPI;
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.BaseResponseAPI;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.DailyRevenueResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductPerformanceResponse;
-import com.globalskills.payment_service.Payment.Dto.TotalInvoiceResponse;
 import com.globalskills.payment_service.Payment.Dto.TotalTransactionResponse;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import com.globalskills.payment_service.Payment.Enum.TransactionStatus;

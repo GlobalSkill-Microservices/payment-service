@@ -1,7 +1,6 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.AccountDto;
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Payment.Dto.TransactionResponse;
 import com.globalskills.payment_service.Payment.Entity.Transaction;
 import com.globalskills.payment_service.Payment.Exception.TransactionException;

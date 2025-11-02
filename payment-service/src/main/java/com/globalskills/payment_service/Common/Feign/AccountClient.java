@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Common.Feign;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Common.FeignClientInterceptor;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

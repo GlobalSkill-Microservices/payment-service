@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductResponse;
 import com.globalskills.payment_service.Payment.Entity.Product;
 import com.globalskills.payment_service.Payment.Enum.ProductType;

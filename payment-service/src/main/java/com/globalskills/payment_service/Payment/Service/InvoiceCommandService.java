@@ -1,6 +1,8 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
+import com.globalskills.payment_service.Common.Dto.BookingStatusDto;
+import com.globalskills.payment_service.Common.Feign.BookingClient;
 import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Product;
@@ -57,7 +59,10 @@ public class InvoiceCommandService {
     @Autowired
     AccountClientService accountClientService;
 
-    public InvoiceResponse create (InvoiceRequest request,Long accountId){
+    @Autowired
+    BookingClient bookingClient;
+
+    public InvoiceResponse create (InvoiceRequest request,Long accountId,Long orderId){
         AccountDto accountDto = accountClientService.fetchAccount(accountId);
         Product product = productQueryService.findProductById(request.getProductId());
         ProductResponse productResponse = modelMapper.map(product,ProductResponse.class);
@@ -72,7 +77,7 @@ public class InvoiceCommandService {
         newInvoice.setCreatedAt(new Date());
         newInvoice.setInvoiceStatus(InvoiceStatus.PENDING);
         newInvoice.setTransactionNumber(transactionNumber);
-
+        newInvoice.setExternalOrderId(orderId);
         invoiceRepo.save(newInvoice);
 
 
@@ -116,6 +121,9 @@ public class InvoiceCommandService {
         ProductType productType = invoice.getProduct().getProductType();
         if(productType.equals(ProductType.REGISTER)) {
             accountClientService.updateApplicationStatus(invoice.getAccountId());
+        }else if (productType.equals(ProductType.BOOKING)){
+            BookingStatusDto dto = new BookingStatusDto(invoice.getExternalOrderId());
+            bookingClient.BookingStatus(dto);
         }
     }
 

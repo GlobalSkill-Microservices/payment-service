@@ -1,16 +1,12 @@
 package com.globalskills.payment_service.Payment.Dto;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor

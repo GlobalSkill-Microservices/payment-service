@@ -1,4 +1,4 @@
-package com.globalskills.payment_service.Common;
+package com.globalskills.payment_service.Common.Dto;
 
 import lombok.AccessLevel;
 import lombok.Data;

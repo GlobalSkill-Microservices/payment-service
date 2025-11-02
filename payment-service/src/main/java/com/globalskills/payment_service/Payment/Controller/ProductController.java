@@ -1,7 +1,7 @@
 package com.globalskills.payment_service.Payment.Controller;
 
-import com.globalskills.payment_service.Common.BaseResponseAPI;
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.BaseResponseAPI;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductRequest;
 import com.globalskills.payment_service.Payment.Dto.ProductResponse;
 import com.globalskills.payment_service.Payment.Service.ProductCommandService;

@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Payment.Service.Client;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Common.Feign.AccountClient;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

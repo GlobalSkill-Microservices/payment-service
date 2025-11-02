@@ -1,17 +1,14 @@
 package com.globalskills.payment_service.Payment.Controller;
 
-import com.globalskills.payment_service.Common.BaseResponseAPI;
+import com.globalskills.payment_service.Common.Dto.BaseResponseAPI;
 import com.globalskills.payment_service.Payment.Dto.InvoiceRequest;
 import com.globalskills.payment_service.Payment.Dto.InvoiceResponse;
-import com.globalskills.payment_service.Payment.Dto.WebhookRequest;
 import com.globalskills.payment_service.Payment.Service.InvoiceCommandService;
 import com.globalskills.payment_service.Payment.Service.InvoiceQueryService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,18 +29,10 @@ public class InvoiceController {
     @PostMapping
     public ResponseEntity<?> create(@RequestBody InvoiceRequest request,
                                     @Parameter(hidden = true)
-                                    @RequestHeader(value = "X-User-ID",required = false) Long accountId){
-        InvoiceResponse response = invoiceCommandService.create(request,accountId);
+                                    @RequestHeader(value = "X-User-ID",required = false) Long accountId,
+                                    @RequestParam(required = false) Long orderId){
+        InvoiceResponse response = invoiceCommandService.create(request,accountId,orderId);
         BaseResponseAPI<InvoiceResponse> responseAPI = new BaseResponseAPI<>(true,"Create invoice successfully", response,null);
-        return ResponseEntity.ok(responseAPI);
-    }
-
-    @PostMapping("/webhook")
-    public ResponseEntity<?> update(@RequestBody WebhookRequest request) {
-
-        invoiceCommandService.update(request);
-
-        BaseResponseAPI<?> responseAPI = new BaseResponseAPI<>(true, "Invoice payment success", null, null);
         return ResponseEntity.ok(responseAPI);
     }
 
