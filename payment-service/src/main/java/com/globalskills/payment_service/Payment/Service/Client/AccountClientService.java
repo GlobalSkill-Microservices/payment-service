@@ -21,8 +21,13 @@ public class AccountClientService {
     public AccountDto fetchAccount(Long id){
         return accountClient.getAccountById(id);
     }
+
     public List<AccountDto> fetchListAccount(Set<Long> ids){
         return accountClient.getAccountByIds(ids);
+    }
+
+    public void updateApplicationStatus(Long id){
+        accountClient.updateApplicationStatus(id);
     }
 
 }

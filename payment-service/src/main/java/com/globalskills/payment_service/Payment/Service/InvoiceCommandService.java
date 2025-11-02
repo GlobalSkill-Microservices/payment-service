@@ -5,10 +5,10 @@ import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Product;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
+import com.globalskills.payment_service.Payment.Enum.ProductType;
 import com.globalskills.payment_service.Payment.Exception.InvoiceException;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Service.Client.AccountClientService;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,9 +109,14 @@ public class InvoiceCommandService {
         if (startIndex != -1) {
             result = request.getContent().substring(startIndex);
         }
-        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(result);
+        Invoice invoice = invoiceQueryService.findByTransactionNumber(result);
         invoice.setInvoiceStatus(InvoiceStatus.PAID);
         invoiceRepo.save(invoice);
+
+        ProductType productType = invoice.getProduct().getProductType();
+        if(productType.equals(ProductType.REGISTER)) {
+            accountClientService.updateApplicationStatus(invoice.getAccountId());
+        }
     }
 
     private String urlPayment(HttpServletRequest request,Long id) throws Exception{

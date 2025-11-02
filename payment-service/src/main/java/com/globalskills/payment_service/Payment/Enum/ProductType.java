@@ -1,4 +1,6 @@
 package com.globalskills.payment_service.Payment.Enum;
 
-public enum productType {
+public enum ProductType {
+    REGISTER,
+    BOOKING
 }

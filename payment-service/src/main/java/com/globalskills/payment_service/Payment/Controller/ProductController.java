@@ -36,6 +36,13 @@ public class ProductController {
         return ResponseEntity.ok(responseAPI);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id){
+        productCommandService.delete(id);
+        BaseResponseAPI<?> responseAPI = new BaseResponseAPI<>(true,"Delete product successfully",null,null);
+        return ResponseEntity.ok(responseAPI);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable Long id){
         ProductResponse response = productQueryService.getProductById(id);

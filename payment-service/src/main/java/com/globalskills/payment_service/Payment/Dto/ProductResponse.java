@@ -1,5 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
+import com.globalskills.payment_service.Payment.Enum.ProductType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,4 +19,6 @@ public class ProductResponse {
     Long price;
 
     String currency;
+
+    ProductType productType;
 }

@@ -27,7 +27,7 @@ public class InvoiceQueryService {
         return invoiceRepo.findById(id).orElseThrow(()->new InvoiceException("Cant found invoice", HttpStatus.NOT_FOUND));
     }
 
-    public Invoice findByAccountIdAndTransactionNumber(String transactionNumber){
+    public Invoice findByTransactionNumber(String transactionNumber){
         return invoiceRepo.findByTransactionNumber(transactionNumber).orElseThrow(()-> new InvoiceException("Cant found invoice",HttpStatus.NOT_FOUND));
     }
 
