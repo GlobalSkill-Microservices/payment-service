@@ -251,7 +251,7 @@ public class DashboardService {
 
     private String formatDateToYMD(Date date) {
         if (date == null) return null;
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(date);
     }
 
