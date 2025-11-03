@@ -22,10 +22,6 @@ spring:
       auto-commit: true
       transaction-isolation: TRANSACTION_READ_COMMITTED
 
-logging:
-  level:
-    com.zaxxer.hikari.HikariConfig: DEBUG
-    com.zaxxer.hikari: TRACE
 
   jpa:
     properties:
