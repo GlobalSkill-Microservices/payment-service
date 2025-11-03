@@ -1,8 +1,9 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductResponse;
 import com.globalskills.payment_service.Payment.Entity.Product;
+import com.globalskills.payment_service.Payment.Enum.ProductType;
 import com.globalskills.payment_service.Payment.Exception.ProductException;
 import com.globalskills.payment_service.Payment.Repository.ProductRepo;
 import org.modelmapper.ModelMapper;
@@ -23,6 +24,10 @@ public class ProductQueryService {
 
     @Autowired
     ProductRepo productRepo;
+
+    public Product findProductByProductType(ProductType productType){
+        return productRepo.findByProductType(productType);
+    }
 
     public  Product findProductById(Long id){
         return productRepo.findById(id).orElseThrow(()-> new ProductException("Product not found", HttpStatus.NOT_FOUND));

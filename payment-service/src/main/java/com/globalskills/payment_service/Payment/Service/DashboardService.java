@@ -1,8 +1,7 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.AccountDto;
-import com.globalskills.payment_service.Common.Feign.AccountClient;
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Transaction;

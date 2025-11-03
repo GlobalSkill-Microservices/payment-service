@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Payment.Service.Client;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Common.Feign.AccountClient;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +21,13 @@ public class AccountClientService {
     public AccountDto fetchAccount(Long id){
         return accountClient.getAccountById(id);
     }
+
     public List<AccountDto> fetchListAccount(Set<Long> ids){
         return accountClient.getAccountByIds(ids);
+    }
+
+    public void updateApplicationStatus(Long id){
+        accountClient.updateApplicationStatus(id);
     }
 
 }

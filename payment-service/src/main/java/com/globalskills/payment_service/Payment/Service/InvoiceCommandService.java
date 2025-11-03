@@ -1,14 +1,16 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
+import com.globalskills.payment_service.Common.Dto.BookingStatusDto;
+import com.globalskills.payment_service.Common.Feign.BookingClient;
 import com.globalskills.payment_service.Payment.Dto.*;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Entity.Product;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
+import com.globalskills.payment_service.Payment.Enum.ProductType;
 import com.globalskills.payment_service.Payment.Exception.InvoiceException;
 import com.globalskills.payment_service.Payment.Repository.InvoiceRepo;
 import com.globalskills.payment_service.Payment.Service.Client.AccountClientService;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +59,10 @@ public class InvoiceCommandService {
     @Autowired
     AccountClientService accountClientService;
 
-    public InvoiceResponse create (InvoiceRequest request,Long accountId){
+    @Autowired
+    BookingClient bookingClient;
+
+    public InvoiceResponse create (InvoiceRequest request,Long accountId,Long orderId){
         AccountDto accountDto = accountClientService.fetchAccount(accountId);
         Product product = productQueryService.findProductById(request.getProductId());
         ProductResponse productResponse = modelMapper.map(product,ProductResponse.class);
@@ -72,7 +77,7 @@ public class InvoiceCommandService {
         newInvoice.setCreatedAt(new Date());
         newInvoice.setInvoiceStatus(InvoiceStatus.PENDING);
         newInvoice.setTransactionNumber(transactionNumber);
-
+        newInvoice.setExternalOrderId(orderId);
         invoiceRepo.save(newInvoice);
 
 
@@ -109,9 +114,17 @@ public class InvoiceCommandService {
         if (startIndex != -1) {
             result = request.getContent().substring(startIndex);
         }
-        Invoice invoice = invoiceQueryService.findByAccountIdAndTransactionNumber(result);
+        Invoice invoice = invoiceQueryService.findByTransactionNumber(result);
         invoice.setInvoiceStatus(InvoiceStatus.PAID);
         invoiceRepo.save(invoice);
+
+        ProductType productType = invoice.getProduct().getProductType();
+        if(productType.equals(ProductType.REGISTER)) {
+            accountClientService.updateApplicationStatus(invoice.getAccountId());
+        }else if (productType.equals(ProductType.BOOKING)){
+            BookingStatusDto dto = new BookingStatusDto(invoice.getExternalOrderId());
+            bookingClient.BookingStatus(dto);
+        }
     }
 
     private String urlPayment(HttpServletRequest request,Long id) throws Exception{

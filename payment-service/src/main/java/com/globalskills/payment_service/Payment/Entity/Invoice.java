@@ -24,6 +24,8 @@ public class Invoice {
 
     Long accountId;
 
+    Long externalOrderId;
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     Product product;

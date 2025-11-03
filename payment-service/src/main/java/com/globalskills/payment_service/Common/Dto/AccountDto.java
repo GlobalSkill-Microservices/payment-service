@@ -1,6 +1,5 @@
-package com.globalskills.payment_service.Payment.Dto;
+package com.globalskills.payment_service.Common.Dto;
 
-import com.globalskills.payment_service.Payment.Enum.ProductType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,14 +10,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
+public class AccountDto {
     Long id;
-
-    String name;
-
-    Long price;
-
-    String currency;
-
-    ProductType productType;
+    String username;
+    String fullName;
+    String avatarUrl;
 }

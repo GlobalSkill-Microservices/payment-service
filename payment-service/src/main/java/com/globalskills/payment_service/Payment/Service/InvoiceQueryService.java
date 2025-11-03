@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Payment.Service;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Payment.Dto.InvoiceResponse;
 import com.globalskills.payment_service.Payment.Entity.Invoice;
 import com.globalskills.payment_service.Payment.Exception.InvoiceException;
@@ -27,7 +27,7 @@ public class InvoiceQueryService {
         return invoiceRepo.findById(id).orElseThrow(()->new InvoiceException("Cant found invoice", HttpStatus.NOT_FOUND));
     }
 
-    public Invoice findByAccountIdAndTransactionNumber(String transactionNumber){
+    public Invoice findByTransactionNumber(String transactionNumber){
         return invoiceRepo.findByTransactionNumber(transactionNumber).orElseThrow(()-> new InvoiceException("Cant found invoice",HttpStatus.NOT_FOUND));
     }
 

@@ -1,7 +1,7 @@
 package com.globalskills.payment_service.Payment.Controller;
 
-import com.globalskills.payment_service.Common.BaseResponseAPI;
-import com.globalskills.payment_service.Common.PageResponse;
+import com.globalskills.payment_service.Common.Dto.BaseResponseAPI;
+import com.globalskills.payment_service.Common.Dto.PageResponse;
 import com.globalskills.payment_service.Payment.Dto.ProductRequest;
 import com.globalskills.payment_service.Payment.Dto.ProductResponse;
 import com.globalskills.payment_service.Payment.Service.ProductCommandService;
@@ -33,6 +33,13 @@ public class ProductController {
     public ResponseEntity<?> update(@RequestBody ProductRequest request,@PathVariable Long id){
         ProductResponse response = productCommandService.update(request, id);
         BaseResponseAPI<ProductResponse> responseAPI = new BaseResponseAPI<>(true,"Update product successfully",response,null);
+        return ResponseEntity.ok(responseAPI);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id){
+        productCommandService.delete(id);
+        BaseResponseAPI<?> responseAPI = new BaseResponseAPI<>(true,"Delete product successfully",null,null);
         return ResponseEntity.ok(responseAPI);
     }
 

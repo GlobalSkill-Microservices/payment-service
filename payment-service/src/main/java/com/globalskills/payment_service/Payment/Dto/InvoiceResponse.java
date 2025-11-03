@@ -1,6 +1,6 @@
 package com.globalskills.payment_service.Payment.Dto;
 
-import com.globalskills.payment_service.Common.AccountDto;
+import com.globalskills.payment_service.Common.Dto.AccountDto;
 import com.globalskills.payment_service.Payment.Enum.InvoiceStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
