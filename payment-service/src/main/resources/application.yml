@@ -5,6 +5,9 @@ spring:
   application:
     name: payment-service
 
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+
 
   datasource:
     url: jdbc:mysql://globalskill-globalskill.e.aivencloud.com:23246/payment-service?ssl-mode=REQUIRED
